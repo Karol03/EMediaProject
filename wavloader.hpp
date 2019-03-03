@@ -37,6 +37,7 @@ struct WAVFile final
     }
 
     Header header;
+    long samples_amount;
     DataType* data;
 };
 

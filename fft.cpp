@@ -2,8 +2,7 @@
 
 ComplexArray FFT::transform(const WAVFile& wav)
 {
-    long size = wav.header->data_size/
-            (sizeof(char)+wav.header->bits_per_sample/sizeof(char));
+    long size = wav.samples_amount;
     Complex* array = new Complex[size];
     for (long i=0; i<size; i++)
         array[i] = wav.data[i];

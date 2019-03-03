@@ -51,9 +51,10 @@ void WavLoader::readHeader(std::ifstream& file)
 
 void WavLoader::readData(std::ifstream& file)
 {
-    size_t length = sample.header->data_size/sizeof(char);
-    char* buffer = new char[length];
-    file.read(buffer, length);
+    sample.samples_amount =
+            sample.header->data_size/(sample.header->bits_per_sample/sizeof(char));
+    char* buffer = new char[sample.header->data_size];
+    file.read(buffer, sample.samples_amount);
     sample.data = reinterpret_cast<WAVFile::DataType*>(buffer);
 }
 
