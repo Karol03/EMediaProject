@@ -5,6 +5,7 @@
 #include <memory>
 #include <inttypes.h>
 
+using DataType = int16_t;
 
 struct WAVHeader final
 {
@@ -26,7 +27,6 @@ struct WAVHeader final
 struct WAVFile final
 {
     using Header = std::shared_ptr<WAVHeader>;
-    using DataType = int16_t;
 
     WAVFile() : data(nullptr)
     {}
@@ -37,7 +37,7 @@ struct WAVFile final
     }
 
     Header header;
-    long samples_amount;
+    uint32_t samples_amount;
     DataType* data;
 };
 
@@ -46,7 +46,6 @@ class WavLoader
 {
 public:
     explicit WavLoader(WAVFile& wav);
-    const WAVFile& get() const;
     void load(const char* sampleName);
     void print() const;
 

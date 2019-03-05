@@ -6,5 +6,9 @@
 class GNUPlot final
 {
 public:
-    static void draw(double duration, double* array, long size);
+    static void draw(double duration, std::vector<double> array);
+
+private:
+    static void saveArray(double duration, std::vector<double> array);
+    static void openAndDraw();
 };

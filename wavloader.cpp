@@ -42,20 +42,25 @@ bool WavLoader::isReadable(std::ifstream& file)
 
 void WavLoader::readHeader(std::ifstream& file)
 {
+    const unsigned BYTE_SIZE = 8;
     size_t length = sizeof(WAVHeader);
     char* buffer = new char[length];
     file.read(buffer, length);
     WAVHeader* wav = reinterpret_cast<WAVHeader*>(buffer);
     sample.header = std::make_shared<WAVHeader>(*wav);
+    sample.samples_amount =
+            sample.header->data_size/
+            sample.header->bits_per_sample/
+            (sample.header->bits_per_sample/BYTE_SIZE);
 }
 
 void WavLoader::readData(std::ifstream& file)
 {
-    sample.samples_amount =
-            sample.header->data_size/(sample.header->bits_per_sample/sizeof(char));
-    char* buffer = new char[sample.header->data_size];
-    file.read(buffer, sample.samples_amount);
-    sample.data = reinterpret_cast<WAVFile::DataType*>(buffer);
+    const unsigned BYTE_SIZE = 8;
+    auto size = sample.samples_amount*(sample.header->bits_per_sample/BYTE_SIZE);
+    char* buffer = new char[size];
+    file.read(buffer, size);
+    sample.data = reinterpret_cast<DataType*>(buffer);
 }
 
 void WavLoader::print() const
@@ -93,9 +98,4 @@ void WavLoader::print() const
     for (int i=0; i < 1000; i++)
         std::cout << sample.data[i] << " ";
     std::cout << "\n";
-}
-
-const WAVFile& WavLoader::get() const
-{
-    return sample;
 }

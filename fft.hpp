@@ -2,21 +2,28 @@
 
 #include <cmath>
 #include <complex>
-#include <valarray>
 #include <vector>
 
 #include "wavloader.hpp"
+#include "rawaudio.hpp"
 
-using Complex = std::complex<double>;
-using ComplexArray = std::valarray<Complex>;
 
 class FFT final
 {
 public:
-    static ComplexArray transform(const WAVFile& wav);
-    static ComplexArray inverse(WAVFile& wav);
+    using Complex = std::complex<double>;
+    using SimpleArray = std::vector<double>;
+    using ComplexArray = std::vector<Complex>;
+    using ArraysSimple = std::vector<SimpleArray>;
+    using ArraysComplex = std::vector<ComplexArray>;
 
-    static double* getSpectrum(const ComplexArray& array);
+    static ArraysComplex transform(const RawAudio& audio);
+
+    static ArraysComplex transform(ArraysComplex& arrays);
+    static ArraysComplex inverse(ArraysComplex& arrays);
+
+    static ArraysSimple getSpectrum(const ArraysComplex& array);
 private:
-    static void transform(std::valarray<Complex>& array);
+    static void transform(ComplexArray& array);
+    static void inverse(ComplexArray& array);
 };

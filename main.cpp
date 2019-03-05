@@ -1,6 +1,8 @@
 #include <iostream>
+
 #include "gnuplot.hpp"
 #include "fft.hpp"
+#include "rawaudio.hpp"
 #include "wavloader.hpp"
 
 using namespace std;
@@ -18,15 +20,23 @@ int main()
     wavLoader.print();
 
     cout << "\nFast Fourier Transform\n";
-    auto array = FFT::transform(wav);
+
+    RawAudioStereo audio;
+    audio.separateSound(wav.data, wav.samples_amount);
+
+    auto array = FFT::transform(audio);
     auto spectrum = FFT::getSpectrum(array);
 
-    double sample_freq = double(wav.header->sample_rate);
-    double duration = 1.0/sample_freq;
+    double bps = (wav.header->data_size/wav.header->byterate)/
+            wav.samples_amount;
+    double duration = 1.0/bps;
 
-    for(int i=0; i<100; i++)
-        cout << spectrum[i] << " ";
     cout << "\n";
     cout << "\nDraw on GNUPlot\n";
-    GNUPlot::draw(duration, spectrum, wav.header->data_size);
+    for(size_t i=0; i<spectrum.size(); i++)
+    {
+        cout << "\tCHANNEL " << i << endl;
+        GNUPlot::draw(duration, spectrum[i]);
+    }
+
 }

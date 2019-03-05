@@ -1,51 +1,90 @@
 #include "fft.hpp"
 
-ComplexArray FFT::transform(const WAVFile& wav)
+FFT::ArraysComplex FFT::transform(const RawAudio& audio)
 {
-    long size = wav.samples_amount;
-    Complex* array = new Complex[size];
-    for (long i=0; i<size; i++)
-        array[i] = wav.data[i];
+    auto size = audio(Channel::Number::First).length*audio.chNumb;
+    ArraysComplex arrays;
 
-    std::valarray<Complex> complexArray(array, size);
-    transform(complexArray);
+    audio.for_each_channel(
+        [&size, &arrays](const auto& channel)
+        {
+            Complex* array = new Complex[size];
+            for (uint32_t i=0; i<channel.length; i++)
+                array[i] = channel[i];
+            arrays.emplace_back(ComplexArray(size, *array));
+        });
 
-    return complexArray;
+    return transform(arrays);
 }
 
-double* FFT::getSpectrum(const ComplexArray& array)
+FFT::ArraysComplex FFT::transform(ArraysComplex& arrays)
 {
-    if (array.size() == 0)
-        return nullptr;
-
-    double* newArray;
-    newArray = new double[array.size()];
-    for (unsigned i=0; i<array.size(); i++)
-        newArray[i] = std::abs(array[i]);
-    return newArray;
+    for (auto& array : arrays)
+        transform(array);
+    return arrays;
 }
 
-void FFT::transform(std::valarray<Complex>& array)
+FFT::ArraysSimple FFT::getSpectrum(const ArraysComplex& arrays)
+{
+    if (arrays.empty())
+        return {};
+
+    ArraysSimple simpleArrays;
+    for (const auto& array : arrays)
+    {
+        double* newArray;
+        newArray = new double[array.size()];
+        for (unsigned i=0; i<array.size(); i++)
+            newArray[i] = std::abs(array[i]);
+        simpleArrays.emplace_back(SimpleArray(array.size(), *newArray));
+    }
+
+    return simpleArrays;
+}
+
+/* Cooley–Tukey FFT algorithm */
+void FFT::transform(ComplexArray& array)
 {
     const size_t N = array.size();
     if (N <= 1)
         return;
 
-    ComplexArray even = array[std::slice(0, N/2, 2)];
-    ComplexArray odd = array[std::slice(1, N/2, 2)];
+    ComplexArray even(N/2);
+    ComplexArray odd(N/2);
+
+    for (unsigned i=0; i<N/2; i++)
+    {
+        even[i] = array[i*2];
+        odd[i] = array[i*2+1];
+    }
 
     transform(even);
     transform(odd);
 
     for (size_t k = 0; k < N/2; ++k)
     {
-        Complex t = std::polar(1.0, -2 * M_PI * k / N) * odd[k];
+        Complex t = std::polar(1.0, -2.0 * M_PI * k / N) * odd[k];
         array[k] = even[k] + t;
         array[k+N/2] = even[k] - t;
     }
 }
 
-ComplexArray FFT::inverse(WAVFile&)
+FFT::ArraysComplex FFT::inverse(ArraysComplex& arrays)
 {
-    return ComplexArray{};
+    for (auto& array : arrays)
+        inverse(array);
+    return arrays;
+}
+
+void FFT::inverse(ComplexArray& array)
+{
+    for (auto& complex : array)
+        std::conj(complex);
+    transform(array);
+
+    for (auto& complex : array)
+        std::conj(complex);
+
+    for (auto& complex : array)
+        complex /= array.size();
 }
