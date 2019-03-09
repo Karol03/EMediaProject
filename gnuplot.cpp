@@ -2,45 +2,46 @@
 #include <cstdio>
 #include <iostream>
 #include <fstream>
+#include "gnuplot_i.hpp"
 
 namespace detail
 {
-const char* getFileName()
+
+std::string getFileName()
 {
-    static int i = 0;
-    std::string fileName("array");
+    static unsigned i = 0;
+    std::string fileName{"array"};
     if (i!=0)
-        fileName += static_cast<char>(i);
+        fileName += std::to_string(i);
     fileName += ".asc";
     ++i;
-    return fileName.c_str();
-}
-}   // detail
-
-void GNUPlot::draw(double duration, std::vector<double> array)
-{
-    saveArray(duration, array);
-    openAndDraw();
+    return fileName;
 }
 
-void GNUPlot::openAndDraw()
+}   // namespace detail
+
+void GNUPlot::draw(const std::vector<double>& columnX,
+                   const std::vector<double>& array)
 {
-    if (FILE* pipe = _popen("C:/gnuplot/bin/wgnuplot.exe", "w"))
-    {
-        std::cout << "Read data from file" << std::endl;
-        fprintf(pipe, "plot array.asc’ with lines\n");
-        fflush(pipe);
-        std::cout << "Close pipe" << std::endl;
-        _pclose(pipe);
-    }
-    else
-        std::cerr << "Could not open the file\n";
+    saveArray(columnX, array);
+    openAndDraw(columnX, array);
 }
 
-void GNUPlot::saveArray(double duration, std::vector<double> array)
+void GNUPlot::openAndDraw(const std::vector<double>& columnX,
+                          const std::vector<double>& array)
 {
-    std::ofstream file(detail::getFileName());
+    std::cout << __func__ << std::endl;
+    Gnuplot(columnX, array, "MyPlot", "lines");
+    system("pause");
+}
+
+void GNUPlot::saveArray(const std::vector<double>& columnX,
+                        const std::vector<double>& array)
+{
+    auto fileName = detail::getFileName().c_str();
+    std::cout << __func__ << ":" << fileName << std::endl;
+    std::ofstream file(fileName);
     for (size_t i=0; i<array.size(); i++)
-        file << static_cast<double>(i)*duration << " " << array[i] << std::endl;
+        file << columnX[i] << " " << array[i] << std::endl;
     file.close();
 }

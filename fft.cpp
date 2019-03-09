@@ -1,19 +1,21 @@
 #include "fft.hpp"
 
+#include <utility>
+
 FFT::ArraysComplex FFT::transform(const RawAudio& audio)
 {
-    auto size = audio(Channel::Number::First).length*audio.chNumb;
     ArraysComplex arrays;
 
     audio.for_each_channel(
-        [&size, &arrays](const auto& channel)
+        [&arrays](const auto& channel)
         {
-            Complex* array = new Complex[size];
-            for (uint32_t i=0; i<channel.length; i++)
-                array[i] = channel[i];
-            arrays.emplace_back(ComplexArray(size, *array));
+            auto length = channel.length();
+            ComplexArray array;
+            array.reserve(length);
+            for (uint32_t i=0; i<length; i++)
+                array.push_back(channel[i]);
+            arrays.emplace_back(std::move(array));
         });
-
     return transform(arrays);
 }
 
@@ -32,11 +34,11 @@ FFT::ArraysSimple FFT::getSpectrum(const ArraysComplex& arrays)
     ArraysSimple simpleArrays;
     for (const auto& array : arrays)
     {
-        double* newArray;
-        newArray = new double[array.size()];
+        SimpleArray newArray;
+        newArray.reserve(array.size()/2);
         for (unsigned i=0; i<array.size(); i++)
-            newArray[i] = std::abs(array[i]);
-        simpleArrays.emplace_back(SimpleArray(array.size(), *newArray));
+            newArray.push_back(std::abs(array[i]));
+        simpleArrays.emplace_back(std::move(newArray));
     }
 
     return simpleArrays;

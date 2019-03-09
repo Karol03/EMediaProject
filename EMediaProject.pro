@@ -13,7 +13,9 @@ HEADERS += \
     wavloader.hpp \
     fft.hpp \
     gnuplot.hpp \
-    rawaudio.hpp
+    rawaudio.hpp \
+    primesgenerator.hpp \
+    rsa.hpp
 
 
 Boost_USE_STATIC_LIBS = ON

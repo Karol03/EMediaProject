@@ -8,8 +8,7 @@
 struct Channel
 {
     using BitType = double;
-        // MOZE ZASSTOSOWAC WEKTOR ZAMIAST DOUBLE* BO BEDZIE
-        // BEZPIECZNIEJ DLA PAMIECI I OGOLNIE GIT bo git jest git
+    using Bits = std::vector<BitType>;
     enum class Number
     {
         First,
@@ -17,45 +16,33 @@ struct Channel
     };
 
     Channel(Number number,
-            uint32_t length,
-            double* bits)
+            Bits bits)
         : number(number)
-        , length(length)
         , bits(bits)
     {}
 
-    virtual ~Channel()
-    {
-        if (bits != nullptr)
-            delete [] bits;
-    }
+    virtual ~Channel() = default;
 
-    void create(uint32_t length_, BitType* bits_)
+    void create(Bits& bits_)
     {
-        if (length_ == 0 or bits_ == 0)
+        if (bits_.empty())
             return;
-        length = length_;
-        bits = bits_;
+        std::swap(bits_, bits);
     }
 
     BitType operator[](uint32_t i)
-    {
-        if (i<length)
-            return bits[i];
-        throw std::out_of_range("Out of channel range");
-    }
+    {   return bits[i];   }
 
     BitType operator[](uint32_t i) const
-    {
-        if (i<length)
-            return bits[i];
-        throw std::out_of_range("Out of channel range");
-    }
+    {   return bits[i];   }
+
+    uint32_t length() const
+    {   return bits.size();   }
+
 
 public:
     const Number number;
-    uint32_t length;
-    BitType* bits;
+    Bits bits;
 };
 
 
@@ -79,7 +66,7 @@ class RawAudioMono : public RawAudio
 public:
     RawAudioMono()
         : RawAudio(1)
-        , channel{Channel::Number::First, 0, nullptr}
+        , channel{Channel::Number::First, {}}
     {}
 
     Channel& operator()(Channel::Number) override
@@ -92,10 +79,9 @@ public:
     {
         if (data == nullptr or length == 0)
             return;
-        channel.length = length;
-        channel.bits = new Channel::BitType[length];
+        channel.bits.reserve(length);
         for (uint32_t i=0; i<length; i++)
-            channel.bits[i] = data[i];
+            channel.bits.push_back(data[i]);
     }
 
     void for_each_channel(const std::function<void(Channel&)>& functor) override
@@ -114,7 +100,7 @@ class RawAudioStereo : public RawAudio
 public:
     RawAudioStereo()
         : RawAudio(2)
-        , channel{{Channel::Number::First, 0, nullptr}, {Channel::Number::Second, 0, nullptr}}
+        , channel{{Channel::Number::First, {}}, {Channel::Number::Second, {}}}
     {}
 
     Channel& operator()(Channel::Number chnumb) override
@@ -137,16 +123,13 @@ public:
     {
         if (data == nullptr or length == 0 or length%2)
             return;
-
-        channel[0].bits = new Channel::BitType[length/2];
-        channel[1].bits = new Channel::BitType[length/2];
-        channel[0].length = length/2;
-        channel[1].length = length/2;
+        channel[0].bits.reserve(length/2);
+        channel[1].bits.reserve(length/2);
 
         for (uint32_t i=0; i<length/2; i++)
         {
-            channel[0].bits[i] = data[2*i];
-            channel[1].bits[i] = data[2*i+1];
+            channel[0].bits.push_back(data[2*i]);
+            channel[1].bits.push_back(data[2*i+1]);
         }
     }
 
