@@ -31,7 +31,7 @@ void GNUPlot::openAndDraw(const std::vector<double>& columnX,
                           const std::vector<double>& array)
 {
     std::cout << __func__ << std::endl;
-    Gnuplot(columnX, array, "MyPlot", "lines");
+    // Gnuplot(columnX, array, "MyPlot", "lines");
     system("pause");
 }
 

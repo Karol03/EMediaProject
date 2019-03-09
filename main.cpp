@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 
+#include "detail.hpp"
 #include "fft.hpp"
 #include "gnuplot.hpp"
 #include "rawaudiostereo.hpp"
@@ -102,37 +103,23 @@ int main()
 
     cout << endl << "Fast Fourier Transform" << endl;
     {   // START FFT
-//    cout << "\tGet complex vector from raw audio" << endl;
-//    auto array = FFT::transform(audio);
-//    cout << "\tGet spectrum array from complex numbers" << endl;
-//    auto spectrum = FFT::getSpectrum(array);
+    auto from = 0;
+    // Byterate / (channel number)/ bytes for one sample = samples per second
+    auto to = wav.header->byterate/wav.header->channels/2;
+    cout << "\tCreate sampel with indexes <"
+         << from << ", " << to <<">" << endl;
+    auto audioSampel = detail::getSampel(audio, from, to);
 
-//    cout << endl << "Draw spectrum on GNUPlot" << endl;
-//    cout << "\tGet duration time to plot" << endl;
-//    double duration =
-//            (double(wav.header->data_size/wav.header->byterate)/
-//            double(audio(Channel::Number::First).length());
-//    std::vector<double> columnX(spectrum.size());
+    cout << "\tGet complex vector from raw audio" << endl;
+    auto array = FFT::transform(audioSampel);
+    cout << "\tGet spectrum array from complex numbers" << endl;
+    auto spectrum = FFT::getSpectrum(array);
 
-//    for(size_t i=0; columnX.size()!=spectrum[0].size(); i++)
-//        columnX.push_back(duration*double(i));
-
-//    cout << endl << "\tDraw on GNUPlot" << endl;
-//    GNUPlot::draw(columnX, spectrum[0]);
-//    GNUPlot::draw(columnX, spectrum[1]);
-
-//    std::vector<double> columnX;
-//    std::vector<double> firstChannelBits;
-//    convert(audio(Channel::Number::First).bits, firstChannelBits);
-
-//    std::vector<double> secondChannelBits;
-//    convert(audio(Channel::Number::Second).bits, secondChannelBits);
-
-//    columnX.reserve(firstChannelBits.size());
-//    for(size_t i=0; columnX.size() != firstChannelBits.size(); i++)
-//        columnX.push_back(duration*double(i));
-//    GNUPlot::draw(columnX, firstChannelBits);
-
+    cout << "\tDraw spectrum on GNUPlot" << endl;
+    cout << "\tGet duration time to plot" << endl;
+    double duration =
+            (double(wav.header->data_size/wav.header->byterate)/
+            double(audio(Channel::Number::First).length()));
     }   // END OF FFT
 
     cout << endl << "Encrypt data by RSA algorithm" << endl;
