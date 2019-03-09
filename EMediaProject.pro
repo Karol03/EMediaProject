@@ -7,7 +7,11 @@ SOURCES += \
         main.cpp \
     wavloader.cpp \
     fft.cpp \
-    gnuplot.cpp
+    gnuplot.cpp \
+    wavcreator.cpp \
+    rawaudiomono.cpp \
+    rawaudiostereo.cpp \
+    detail.cpp
 
 HEADERS += \
     wavloader.hpp \
@@ -15,7 +19,12 @@ HEADERS += \
     gnuplot.hpp \
     rawaudio.hpp \
     primesgenerator.hpp \
-    rsa.hpp
+    rsa.hpp \
+    wavcreator.hpp \
+    rawaudiomono.hpp \
+    rawaudiostereo.hpp \
+    channel.hpp \
+    detail.hpp
 
 
 Boost_USE_STATIC_LIBS = ON

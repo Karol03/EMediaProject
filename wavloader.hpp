@@ -24,16 +24,38 @@ struct WAVHeader final
     uint32_t data_size;
 };
 
-struct WAVFile final
+struct WAVFile
 {
     using Header = std::shared_ptr<WAVHeader>;
 
-    WAVFile() : data(nullptr)
-    {}
-    ~WAVFile()
+    WAVFile() : data(nullptr) {}
+    WAVFile(const WAVFile& wav) : data(nullptr)
+    {
+        this->operator=(wav);
+    }
+
+    WAVFile& operator=(const WAVFile& wav)
+    {
+        header = wav.header;
+        samples_amount = wav.samples_amount;
+        if (data)
+            delete [] data;
+        if (samples_amount == 0)
+        {
+            data = nullptr;
+            return *this;
+        }
+        data = new DataType[samples_amount];
+        for (uint32_t i=0; i<samples_amount; i++)
+            data[i] = wav.data[i];
+        return *this;
+    }
+
+    virtual ~WAVFile()
     {
         if (data)
             delete [] data;
+        data = nullptr;
     }
 
     Header header;
@@ -41,18 +63,22 @@ struct WAVFile final
     DataType* data;
 };
 
-
 class WavLoader
 {
 public:
     explicit WavLoader(WAVFile& wav);
-    void load(const char* sampleName);
-    void print() const;
+    void set(WAVFile& wav);
+
+    void save(const char* fileName);
+    void load(const char* fileName);
 
 private:
     void readHeader(std::ifstream& file);
     void readData(std::ifstream& file);
     bool isReadable(std::ifstream& file);
+
+    void saveHeader(std::ofstream& file);
+    void saveData(std::ofstream& file);
 
     bool loaded;
     WAVFile& sample;
